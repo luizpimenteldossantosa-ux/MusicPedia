@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de Biografias & Discografias - Lendas da Música</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#131b2e',
+                        borderCol: '#1e293b',
+                        brandRed: '#ff2052',
+                        brandPurple: '#8b5cf6',
+                        brandGold: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+        .folder-card.active {
+            border-color: #ff2052;
+            background: linear-gradient(135deg, rgba(255, 32, 82, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            box-shadow: 0 4px 20px rgba(255, 32, 82, 0.25);
+        }
+        .artist-item.active {
+            border-color: #ff2052;
+            background-color: #1e293b;
+            box-shadow: 0 0 12px rgba(255, 32, 82, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-borderCol shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-gradient-to-tr from-rose-600 to-violet-600 rounded-xl shadow-lg">
+                    <i class="fa-solid fa-folder-closed text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wider bg-gradient-to-r from-rose-500 via-purple-400 to-amber-400 bg-clip-text text-transparent">
+                        Música Hub & Pastas
+                    </h1>
+                    <p class="text-xs text-slate-400">Organização por Gênero & Ordem Alfabética (A-Z)</p>
+                </div>
+            </div>
+
+            <!-- Global Search -->
+            <div class="relative w-full md:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="global-search" oninput="handleSearch()" placeholder="Buscar artista ou música..." 
+                       class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brandRed transition text-sm">
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Folder Categories Grid -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-folder-tree text-brandRed"></i>
+                    Categorias & Pastas de Gênero
+                </h2>
+                <span id="folder-status" class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-borderCol">
+                    Exibindo: Todos
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3" id="folder-grid">
+                <!-- Injetado dinamicamente via JS -->
+            </div>
+        </section>
+
+        <!-- Dynamic Content Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b border-borderCol gap-2">
+            <div>
+                <h3 id="category-title" class="text-2xl font-black text-white flex items-center gap-2">
+                    <span>Todos os Artistas</span>
+                </h3>
+                <p id="category-subtitle" class="text-xs text-slate-400 mt-1">Listados em ordem alfabética de A a Z</p>
+            </div>
+            <div class="text-xs bg-slate-900 text-slate-300 px-3 py-1.5 rounded-lg border border-borderCol flex items-center gap-2">
+                <i class="fa-solid fa-arrow-down-a-z text-amber-400"></i>
+                <span id="artist-count">0 Artistas</span>
+            </div>
+        </div>
+
+        <!-- Layout de Artistas & Detalhes -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Coluna de Artistas (A-Z) -->
+            <div class="lg:col-span-4 space-y-2 max-h-[680px] overflow-y-auto pr-1" id="artists-list-container">
+                <!-- Injetado via JS -->
+            </div>
+
+            <!-- Coluna de Detalhes (Bio + Músicas) -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Card de Bio -->
+                <div id="bio-card" class="bg-cardBg border border-borderCol rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                    <div class="flex flex-col md:flex-row gap-6 items-center md:items-start">
+                        <img id="artist-img" src="" alt="Artista" class="w-40 h-40 sm:w-48 sm:h-48 object-cover rounded-2xl shadow-2xl border-2 border-slate-700 flex-shrink-0">
+                        <div class="flex-grow text-center md:text-left">
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+                                <span id="artist-genre-badge" class="bg-brandRed/20 text-brandRed text-xs font-bold px-3 py-1 rounded-full border border-brandRed/30">
+                                    Gênero
+                                </span>
+                                <span class="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full border border-slate-700">
+                                    Ordem Alfabética
+                                </span>
+                            </div>
+                            <h3 id="artist-name" class="text-3xl font-black text-white tracking-tight mb-1">Nome do Artista</h3>
+                            <p id="artist-subtitle" class="text-sm text-cyan-400 font-medium mb-4"></p>
+                            <div id="bio-text" class="text-slate-300 text-sm space-y-2 leading-relaxed max-h-36 overflow-y-auto pr-2">
+                                <!-- Bio -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Discografia -->
+                <div class="bg-cardBg border border-borderCol rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-borderCol">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-compact-disc text-brandRed text-xl"></i>
+                            <h4 class="text-lg font-bold text-white">Principais Éxitos & Discografia</h4>
+                        </div>
+                        <span id="track-count" class="text-xs text-slate-400">0 faixas</span>
+                    </div>
+
+                    <div id="discography-list" class="space-y-3">
+                        <!-- Músicas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal do YouTube -->
+    <div id="yt-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative">
+            <button onclick="closeModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-full w-9 h-9 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h3 id="modal-title" class="text-base sm:text-lg font-bold text-white mb-4 pr-10 truncate">Reproduzindo Preview</h3>
+            <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-black border border-slate-800 shadow-inner">
+                <iframe id="modal-iframe" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="mt-4 flex justify-between items-center flex-wrap gap-2">
+                <span class="text-xs text-slate-400">Clique para abrir o resultado direto na plataforma:</span>
+                <a id="modal-direct-link" href="#" target="_blank" class="bg-brandRed hover:bg-rose-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-2">
+                    <i class="fa-brands fa-youtube"></i>
+                    <span>Abrir no YouTube</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-950 border-t border-borderCol mt-12 py-6 text-center text-slate-500 text-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p>&copy; 2026 Portal Lendas da Música. Organizado por Pastas de Gêneros.</p>
+            <p class="flex items-center gap-1.5">
+                <span>Catálogo completo e ordenado</span>
+                <i class="fa-solid fa-music text-brandRed"></i>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data and Logic -->
+    <script>
+        // Definição das Pastas / Categorias
+        const categories = [
+            { id: "all", name: "Todos", icon: "fa-border-all", color: "text-slate-300" },
+            { id: "pop", name: "Pop", icon: "fa-crown", color: "text-rose-400" },
+            { id: "sertanejo", name: "Sertanejo", icon: "fa-hat-cowboy", color: "text-amber-400" },
+            { id: "mpb", name: "MPB & Bossa Nova", icon: "fa-guitar", color: "text-emerald-400" },
+            { id: "rock", name: "Rock Nacional / Int.", icon: "fa-bolt", color: "text-red-500" },
+            { id: "rap-funk", name: "Funk & Rap", icon: "fa-microphone-lines", color: "text-purple-400" },
+            { id: "eletronica", name: "Eletrônica", icon: "fa-wave-square", color: "text-cyan-400" },
+            { id: "forro", name: "Forró", icon: "fa-drum", color: "text-orange-400" }
+        ];
+
+        // Banco de Dados de Artistas Completo
+        const artistsData = [
+            // POP
+            {
+                id: "adele",
+                category: "pop",
+                categoryLabel: "Pop",
+                name: "Adele",
+                subtitle: "Uma das maiores e mais premiadas vozes da música pop mundial",
+                image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop",
+                bio: "Adele Laurie Blue Adkins é uma cantora e compositora britânica famosa por sua voz potente e baladas emotivas. Vencedora de múltiplos prêmios Grammy e Oscar.",
+                tracks: [
+                    { title: "Hello", album: "25 (2015)", ytId: "YQHsXMglC9A" },
+                    { title: "Someone Like You", album: "21 (2011)", ytId: "hLQl3WQQoQ0" },
+                    { title: "Rolling in the Deep", album: "21 (2011)", ytId: "rYEDA3JcQqw" },
+                    { title: "Easy On Me", album: "30 (2021)", ytId: "U3ASj1L6_sY" }
+                ]
+            },
+            {
+                id: "anitta",
+                category: "pop",
+                categoryLabel: "Pop / Funk",
+                name: "Anitta",
+                subtitle: "Fenômeno global do Pop e Pop Latino brasileiro",
+                image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=600&auto=format&fit=crop",
+                bio: "Larissa de Macedo Machado, conhecida como Anitta, quebrou barreiras internacionais tornando-se uma das maiores artistas Pop e Funk do mundo.",
+                tracks: [
+                    { title: "Envolver", album: "Versions of Me (2022)", ytId: "hFCjG13N7x0" },
+                    { title: "Downtown (feat. J Balvin)", album: "Single (2017)", ytId: "vqW18C4plZ8" },
+                    { title: "Show das Poderosas", album: "Anitta (2013)", ytId: "FGViL3Xb65U" },
+                    { title: "Funk Rave", album: "Funk Generation (2024)", ytId: "3zN9S3E0pE8" }
+                ]
+            },
+            {
+                id: "bruno-mars",
+                category: "pop",
+                categoryLabel: "Pop / R&B",
+                name: "Bruno Mars",
+                subtitle: "Rei do Pop moderno, R&B e performances históricas",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600&auto=format&fit=crop",
+                bio: "Peter Gene Hernandez, conhecido como Bruno Mars, é famoso por seu talento multi-instrumentista, performances eletrizantes e grandes hits universais.",
+                tracks: [
+                    { title: "Uptown Funk", album: "Uptown Special (2014)", ytId: "OPf0YbXqDm0" },
+                    { title: "Just the Way You Are", album: "Doo-Wops & Hooligans (2010)", ytId: "LjhCEhWikx4" },
+                    { title: "24K Magic", album: "24K Magic (2016)", ytId: "UqyT8IEBkvY" },
+                    { title: "Locked Out of Heaven", album: "Unorthodox Jukebox (2012)", ytId: "e-fA-gBCkj0" }
+                ]
+            },
+            {
+                id: "lady-gaga",
+                category: "pop",
+                categoryLabel: "Pop",
+                name: "Lady Gaga",
+                subtitle: "Ícone da cultura pop, inovação artística e performance",
+                image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop",
+                bio: "Stefani Joanne Angelina Germanotta, a Lady Gaga, revolucionou a música Pop com estética arrojada, vocais marcantes e hinos globais.",
+                tracks: [
+                    { title: "Bad Romance", album: "The Fame Monster (2009)", ytId: "qrO4YZeylLY" },
+                    { title: "Poker Face", album: "The Fame (2008)", ytId: "bESGLojNYSo" },
+                    { title: "Shallow", album: "A Star Is Born (2018)", ytId: "bo_efYhYU2A" },
+                    { title: "Born This Way", album: "Born This Way (2011)", ytId: "wV1FrqwZyKw" }
+                ]
+            },
+            {
+                id: "luan-santana",
+                category: "pop",
+                categoryLabel: "Pop / Sertanejo",
+                name: "Luan Santana",
+                subtitle: "Uma das maiores vozes do Pop/Sertanejo romântico brasileiro",
+                image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+                bio: "Luan Rafael Domingos Santana revolucionou o meio sertanejo e pop brasileiro com superproduções de shows e hits românticos ininterruptos desde 2009.",
+                tracks: [
+                    { title: "Meteoro", album: "Tô de Cara (2009)", ytId: "jK6L3v91K01" },
+                    { title: "Morena", album: "LUAN CITY (2021)", ytId: "v83P1mQ2s8k" },
+                    { title: "Acordando o Prédio", album: "1977 (2016)", ytId: "g98kK3m0k0s" },
+                    { title: "Tudo O Que Você Quiser", album: "O Nosso Tempo É Hoje (2013)", ytId: "2aN8s2k0m3a" }
+                ]
+            },
+            {
+                id: "taylor-swift",
+                category: "pop",
+                categoryLabel: "Pop",
+                name: "Taylor Swift",
+                subtitle: "Uma das artistas mais influentes e premiadas do século XXI",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop",
+                bio: "Taylor Alison Swift destacou-se por suas composições autobiográficas e capacidade de reinvenção entre o Country e o Pop Global.",
+                tracks: [
+                    { title: "Shake It Off", album: "1989 (2014)", ytId: "nfWlot6h_JM" },
+                    { title: "Blank Space", album: "1989 (2014)", ytId: "e-ORhEE9VVg" },
+                    { title: "Cruel Summer", album: "Lover (2019)", ytId: "ic8j13gRBSY" },
+                    { title: "Anti-Hero", album: "Midnights (2022)", ytId: "b1kbLwvqugk" }
+                ]
+            },
+            {
+                id: "the-weeknd",
+                category: "pop",
+                categoryLabel: "Pop / R&B",
+                name: "The Weeknd",
+                subtitle: "Mestre do R&B e Pop Synthwave contemporâneo",
+                image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=600&auto=format&fit=crop",
+                bio: "Abel Makkonen Tesfaye, conhecido como The Weeknd, domina paradas globais com sua sonoridade sombria, retro-synth e vocais marcantes.",
+                tracks: [
+                    { title: "Blinding Lights", album: "After Hours (2020)", ytId: "4NRXx6U8ABQ" },
+                    { title: "Starboy", album: "Starboy (2016)", ytId: "34Na4j8AVgA" },
+                    { title: "Save Your Tears", album: "After Hours (2020)", ytId: "XXYlFuWEuKI" },
+                    { title: "The Hills", album: "Beauty Behind the Madness (2015)", ytId: "yzTuBuRdAyA" }
+                ]
+            },
+
+            // SERTANEJO
+            {
+                id: "ana-castela",
+                category: "sertanejo",
+                categoryLabel: "Sertanejo / Agronejo",
+                name: "Ana Castela",
+                subtitle: "A Boiadeira e fenômeno do Agronejo nacional",
+                image: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?q=80&w=600&auto=format&fit=crop",
+                bio: "Ana Flávia Castela emergiu como um dos maiores fenômenos da música brasileira atual, unindo o sertanejo com elementos modernos e urbanos.",
+                tracks: [
+                    { title: "Pipoco (feat. Melody)", album: "Single (2022)", ytId: "L9k3m0A12k0" },
+                    { title: "Solteiro Forçado", album: "Boiadeira Internacional (2023)", ytId: "K9s8N2m1L9k" },
+                    { title: "Nosso Quadro", album: "Single (2023)", ytId: "m2M9k1L2s3a" },
+                    { title: "Dona de Mim", album: "Single (2022)", ytId: "7k2M9N1a2K0" }
+                ]
+            },
+            {
+                id: "henrique-e-juliano",
+                category: "sertanejo",
+                categoryLabel: "Sertanejo",
+                name: "Henrique & Juliano",
+                subtitle: "Uma das duplas sertanejas de maior sucesso do Brasil",
+                image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+                bio: "Os irmãos de Tocantins conquistaram o Brasil com vozes marcantes e repertório carregado de emoção, quebrando recordes em plataformas digitais.",
+                tracks: [
+                    { title: "Cuida Bem Dela", album: "Ao Vivo em Brasília (2014)", ytId: "L9a3Z2P1X88" },
+                    { title: "A Maior Saudade", album: "Manifesto Musical (2021)", ytId: "1M2_Nq52S64" },
+                    { title: "Liberdade Provisória", album: "Ao Vivo no Ibirapuera (2020)", ytId: "3v8N8U41L3k" },
+                    { title: "Arranhão", album: "Manifesto Musical (2021)", ytId: "4Rz3pM1GZ-w" }
+                ]
+            },
+            {
+                id: "marilia-mendonca",
+                category: "sertanejo",
+                categoryLabel: "Sertanejo / Feminejo",
+                name: "Marília Mendonça",
+                subtitle: "A eterna Rainha da Sofrência",
+                image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop",
+                bio: "Marília Mendonça foi a compositora e cantora mais ouvida do Brasil, liderando a revolução feminina no sertanejo com suas composições profundas.",
+                tracks: [
+                    { title: "Infiel", album: "Ao Vivo em Realidade (2016)", ytId: "H9P20Z4FEE" },
+                    { title: "De Quem É a Culpa?", album: "Realidade (2017)", ytId: "2v-sN8c2T5U" },
+                    { title: "Ciumeira", album: "Todos os Cantos (2018)", ytId: "S3R3S_QdDbc" },
+                    { title: "Supera", album: "Todos os Cantos (2019)", ytId: "s3G9A-U2w2A" }
+                ]
+            },
+
+            // MPB & BOSSA NOVA
+            {
+                id: "caetano-veloso",
+                category: "mpb",
+                categoryLabel: "MPB / Tropicália",
+                name: "Caetano Veloso",
+                subtitle: "Mestre da Tropicalia e ícone da MPB",
+                image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=600&auto=format&fit=crop",
+                bio: "Músico, produtor e arranjador baiano, Caetano é um dos criadores do movimento Tropicalista e uma das vozes intelectuais mais importantes do Brasil.",
+                tracks: [
+                    { title: "Sozinho", album: "Prenda Minha (1998)", ytId: "Z42P_STh-kI" },
+                    { title: "Você É Linda", album: "Uns (1983)", ytId: "vB-o1KjR26A" },
+                    { title: "Leãozinho", album: "Bicho (1977)", ytId: "a2IThD1RzMc" },
+                    { title: "Sampa", album: "Muito (1978)", ytId: "9o4K-OAtg4A" }
+                ]
+            },
+            {
+                id: "elis-regina",
+                category: "mpb",
+                categoryLabel: "MPB",
+                name: "Elis Regina",
+                subtitle: "Considerada por muitos a maior cantora brasileira de todos os tempos",
+                image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop",
+                bio: "Com vocal impecável e interpretações viscerais, Elis Regina marcou a história da MPB e da Bossa Nova com performances lendárias.",
+                tracks: [
+                    { title: "Como Nossos Pais", album: "Falso Brilhante (1976)", ytId: "P_z1R0eJ7bI" },
+                    { title: "Águas de Março (com Tom Jobim)", album: "Elis & Tom (1974)", ytId: "zK0p1mQ3O3M" },
+                    { title: "O Bêbado e a Equilibrista", album: "Essa Mulher (1979)", ytId: "g4D1eA6E1E0" },
+                    { title: "Fascinação", album: "Falso Brilhante (1976)", ytId: "k5X3M2K1R90" }
+                ]
+            },
+            {
+                id: "gal-costa",
+                category: "mpb",
+                categoryLabel: "MPB / Tropicália",
+                name: "Gal Costa",
+                subtitle: "Uma das vozes mais cristalinas e potentes da música brasileira",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600&auto=format&fit=crop",
+                bio: "Musa da Tropicália, Gal Costa encantou gerações com seu alcance vocal único, versatilidade e presença de palco marcante.",
+                tracks: [
+                    { title: "Baby", album: "Gal Costa (1969)", ytId: "W9o3N2M11s2" },
+                    { title: "Chuva de Prata", album: "Profana (1984)", ytId: "ebXbLfLACGM" },
+                    { title: "Meu Bem, Meu Mal", album: "Fantasia (1981)", ytId: "DkeiKbqa02g" },
+                    { title: "Vapor Barato", album: "Fa-Tal-Gal a Todo Vapor (1971)", ytId: "dGghkjpNCQ8" }
+                ]
+            },
+            {
+                id: "gilberto-gil",
+                category: "mpb",
+                categoryLabel: "MPB / Tropicália",
+                name: "Gilberto Gil",
+                subtitle: "Gênio da MPB, pioneiro do Tropicalismo e ex-Ministro da Cultura",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop",
+                bio: "Múltiplo, poético e genial, Gilberto Gil fundiu ritmos baianos com rock e MPB, tornando-se uma lenda viva da cultura internacional.",
+                tracks: [
+                    { title: "Aquele Abraço", album: "Gilberto Gil (1969)", ytId: "kOkQ4T5WO9E" },
+                    { title: "Andar com Fé", album: "Um Banda Um (1982)", ytId: "6ACl8s_tM4M" },
+                    { title: "Esperando na Janela", album: "Eu Tu Eles (2000)", ytId: "A3N9S_012kM" },
+                    { title: "Palco", album: "Luar (1981)", ytId: "0b12M9A12kE" }
+                ]
+            },
+            {
+                id: "joao-gilberto",
+                category: "mpb",
+                categoryLabel: "Bossa Nova",
+                name: "João Gilberto",
+                subtitle: "O Pai da Bossa Nova e da batida de violão mais famosa do mundo",
+                image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=600&auto=format&fit=crop",
+                bio: "João Gilberto criou o ritmo revolucionário da Bossa Nova, com seu violão sincopado e canto suave que conquistaram o planeta.",
+                tracks: [
+                    { title: "Chega de Saudade", album: "Chega de Saudade (1959)", ytId: "5c8N1K2m9pM" },
+                    { title: "Garota de Ipanema (feat. Stan Getz)", album: "Getz/Gilberto (1964)", ytId: "4m92K12N3s1" },
+                    { title: "Desafinado", album: "Chega de Saudade (1959)", ytId: "8N91K20L31s" },
+                    { title: "Corcovado", album: "Getz/Gilberto (1964)", ytId: "M2i5S76hSfg" }
+                ]
+            },
+            {
+                id: "milton-nascimento",
+                category: "mpb",
+                categoryLabel: "MPB / Clube da Esquina",
+                name: "Milton Nascimento",
+                subtitle: "Bituca: voz universal da MPB e do Clube da Esquina",
+                image: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?q=80&w=600&auto=format&fit=crop",
+                bio: "Milton Nascimento encantou o mundo com falsetes únicos e composições imortais que uniram o folclore mineiro ao jazz e rock.",
+                tracks: [
+                    { title: "Maria, Maria", album: "Clube da Esquina 2 (1978)", ytId: "1w7OgIMMRc4" },
+                    { title: "Travessia", album: "Courage (1969)", ytId: "o1tj2zJpWvg" },
+                    { title: "Coração de Estudante", album: "Ao Vivo (1983)", ytId: "8SbUC-UaAxE" },
+                    { title: "Canção da América", album: "Journey to Dawn (1979)", ytId: "Rbm6GXllBiw" }
+                ]
+            },
+            {
+                id: "ney-matogrosso",
+                category: "mpb",
+                categoryLabel: "MPB / Rock",
+                name: "Ney Matogrosso",
+                subtitle: "Performática, irreverência e uma das vozes mais marcantes da MPB",
+                image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+                bio: "Ex-integrante do Secos & Molhados, Ney Matogrosso é sinônimo de liberdade artística, vocal agudíssimo e presença cênica revolucionária.",
+                tracks: [
+                    { title: "Poema", album: "O Cair da Tarde (1997)", ytId: "ErvgV4P6Fzc" },
+                    { title: "Sangue Latino", album: "Secos & Molhados (1973)", ytId: "pAgnJDJN4VA" },
+                    { title: "Homem com H", album: "Ney Matogrosso (1981)", ytId: "l482T0yNkeo" },
+                    { title: "Balada do Louco", album: "Ponto de Mutação (1975)", ytId: "v2AC41dglnM" }
+                ]
+            },
+            {
+                id: "roberto-carlos",
+                category: "mpb",
+                categoryLabel: "MPB / Pop Romântico",
+                name: "Roberto Carlos",
+                subtitle: "O Rei da música brasileira e líder da Jovem Guarda",
+                image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop",
+                bio: "Com mais de 140 milhões de discos vendidos, o 'Rei' Roberto Carlos marcou eras do rock da Jovem Guarda às grandes baladas românticas.",
+                tracks: [
+                    { title: "Detalhes", album: "Roberto Carlos (1971)", ytId: "fGDQ9IukMOc" },
+                    { title: "Como É Grande O Meu Amor Por Você", album: "Em Ritmo de Aventura (1967)", ytId: "Lo2qQmj0_h4" },
+                    { title: "Emoções", album: "Roberto Carlos (1981)", ytId: "Z42P_STh-kI" },
+                    { title: "Jesus Cristo", album: "Roberto Carlos (1970)", ytId: "vB-o1KjR26A" }
+                ]
+            },
+            {
+                id: "tim-maia",
+                category: "mpb",
+                categoryLabel: "MPB / Soul / Funk",
+                name: "Tim Maia",
+                subtitle: "O Pai do Soul Brasileiro",
+                image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=600&auto=format&fit=crop",
+                bio: "Sebastião Rodrigues Maia, o inesquecível Tim Maia, introduziu o soul e o funk na MPB com sua voz grave, potente e personalidade irreverente.",
+                tracks: [
+                    { title: "Gostava Tanto de Você", album: "Tim Maia (1973)", ytId: "a2IThD1RzMc" },
+                    { title: "Não Quero Dinheiro (Só Quero Amar)", album: "Tim Maia (1971)", ytId: "9o4K-OAtg4A" },
+                    { title: "Primavera", album: "Tim Maia (1970)", ytId: "M2i5S76hSfg" },
+                    { title: "Descobridor dos Sete Mares", album: "O Descobridor dos Sete Mares (1983)", ytId: "S3R3S_QdDbc" }
+                ]
+            },
+
+            // ROCK & ROCK NACIONAL
+            {
+                id: "acdc",
+                category: "rock",
+                categoryLabel: "Hard Rock Int.",
+                name: "AC/DC",
+                subtitle: "Lendas vivas do Hard Rock mundial",
+                image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop",
+                bio: "Fundada em Sydney pelos irmãos Angus e Malcolm Young, o AC/DC é sinônimo de eletricidade e riffs de guitarra imortais.",
+                tracks: [
+                    { title: "Back In Black", album: "Back in Black (1980)", ytId: "pAgnJDJN4VA" },
+                    { title: "Highway to Hell", album: "Highway to Hell (1979)", ytId: "l482T0yNkeo" },
+                    { title: "Thunderstruck", album: "The Razors Edge (1990)", ytId: "v2AC41dglnM" },
+                    { title: "T.N.T.", album: "T.N.T. (1975)", ytId: "fGDQ9IukMOc" }
+                ]
+            },
+            {
+                id: "cazuza",
+                category: "rock",
+                categoryLabel: "Rock Nacional",
+                name: "Cazuza",
+                subtitle: "O poeta do Rock Nacional brasileiro",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600&auto=format&fit=crop",
+                bio: "Agenor de Miranda Araújo Neto, o Cazuza, marcou o rock brasileiro dos anos 80 no Barão Vermelho e em sua brilhante carreira solo.",
+                tracks: [
+                    { title: "Exagerado", album: "Exagerado (1985)", ytId: "Hj9p20Z4FEE" },
+                    { title: "Codinome Beija-Flor", album: "Exagerado (1985)", ytId: "K6Zz0uE3B2w" },
+                    { title: "Pro Dia Nascer Feliz", album: "Barão Vermelho 2 (1983)", ytId: "s3G9A-U2w2A" },
+                    { title: "O Tempo Não Pára", album: "O Tempo Não Pára (1988)", ytId: "2v-sN8c2T5U" }
+                ]
+            },
+            {
+                id: "chorao-cbjr",
+                category: "rock",
+                categoryLabel: "Rock Nacional / Skate Punk",
+                name: "Chorão (Charlie Brown Jr.)",
+                subtitle: "A voz e a poesia urbana do Charlie Brown Jr.",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop",
+                bio: "Alexandre Magno Abrão, o Chorão, liderou o Charlie Brown Jr., misturando rock, hardcore, rap e skate culture em hinos de gerações.",
+                tracks: [
+                    { title: "Só Os Loucos Sabem", album: "Camisa 10 Joga Bola Até na Chuva (2009)", ytId: "4Rz3pM1GZ-w" },
+                    { title: "Proibida Pra Mim", album: "Transpiração Contínua Prolongada (1997)", ytId: "1M2_Nq52S64" },
+                    { title: "Dias De Luta, Dias De Glória", album: "Imunidade Musical (2005)", ytId: "3v8N8U41L3k" },
+                    { title: "Lugar Ao Sol", album: "100% CBJR (2001)", ytId: "9oX2pM92K01" }
+                ]
+            },
+            {
+                id: "guns-n-roses",
+                category: "rock",
+                categoryLabel: "Hard Rock Int.",
+                name: "Guns N' Roses",
+                subtitle: "Uma das bandas mais explosivas da história do rock",
+                image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=600&auto=format&fit=crop",
+                bio: "Axl Rose, Slash e banda dominaram o cenário mundial do rock a partir de Los Angeles em 1985 com álbuns icônicos.",
+                tracks: [
+                    { title: "Sweet Child O' Mine", album: "Appetite for Destruction (1987)", ytId: "1w7OgIMMRc4" },
+                    { title: "Welcome To The Jungle", album: "Appetite for Destruction (1987)", ytId: "o1tj2zJpWvg" },
+                    { title: "November Rain", album: "Use Your Illusion I (1991)", ytId: "8SbUC-UaAxE" },
+                    { title: "Paradise City", album: "Appetite for Destruction (1987)", ytId: "Rbm6GXllBiw" }
+                ]
+            },
+            {
+                id: "mamonas-assassinas",
+                category: "rock",
+                categoryLabel: "Rock Cômico",
+                name: "Mamonas Assassinas",
+                subtitle: "O maior fenômeno meteórico do rock cômico no Brasil",
+                image: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?q=80&w=600&auto=format&fit=crop",
+                bio: "Surgidos em Guarulhos em 1995, venderam milhões de cópias unindo rock e humor antes de sua trágica despedida prematura.",
+                tracks: [
+                    { title: "Pelados em Santos", album: "Mamonas Assassinas (1995)", ytId: "Z42P_STh-kI" },
+                    { title: "Vira-Vira", album: "Mamonas Assassinas (1995)", ytId: "vB-o1KjR26A" },
+                    { title: "Robocop Gay", album: "Mamonas Assassinas (1995)", ytId: "a2IThD1RzMc" },
+                    { title: "Boys Don't Cry", album: "Mamonas Assassinas (1995)", ytId: "9o4K-OAtg4A" }
+                ]
+            },
+            {
+                id: "renato-russo",
+                category: "rock",
+                categoryLabel: "Rock Nacional",
+                name: "Renato Russo (Legião Urbana)",
+                subtitle: "O trovador solitário do rock nacional",
+                image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+                bio: "Líder da Legião Urbana, Renato Manfredini Júnior escreveu letras poéticas e engajadas que se tornaram hinos de várias gerações brasileiras.",
+                tracks: [
+                    { title: "Tempo Perdido", album: "Dois (1986)", ytId: "P_z1R0eJ7bI" },
+                    { title: "Eduardo e Mônica", album: "Dois (1986)", ytId: "zK0p1mQ3O3M" },
+                    { title: "Faroeste Caboclo", album: "Que País É Este (1987)", ytId: "g4D1eA6E1E0" },
+                    { title: "Pais e Filhos", album: "As Quatro Estações (1989)", ytId: "k5X3M2K1R90" }
+                ]
+            },
+
+            // FUNK & RAP
+            {
+                id: "gabriel-o-pensador",
+                category: "rap-funk",
+                categoryLabel: "Rap Nacional",
+                name: "Gabriel o Pensador",
+                subtitle: "Pioneiro do Rap Consciente no Brasil",
+                image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop",
+                bio: "Com rimas inteligentes e críticas sociais afiadas, abriu as portas do Rap nacional no grande público nos anos 1990.",
+                tracks: [
+                    { title: "Cachimbo da Paz", album: "Quebra-Cabeça (1997)", ytId: "P_z1R0eJ7bI" },
+                    { title: "2345Meia78", album: "Quebra-Cabeça (1997)", ytId: "zK0p1mQ3O3M" },
+                    { title: "Até Quando?", album: "Seja Você Mesmo (2001)", ytId: "g4D1eA6E1E0" },
+                    { title: "Retrato de Um Playboy", album: "Gabriel o Pensador (1993)", ytId: "k5X3M2K1R90" }
+                ]
+            },
+            {
+                id: "mc-hariel",
+                category: "rap-funk",
+                categoryLabel: "Funk Consciente",
+                name: "MC Hariel",
+                subtitle: "O Poeta do Funk Consciente paulista",
+                image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=600&auto=format&fit=crop",
+                bio: "Conhecido por suas composições profundas sobre a vida periférica e superação, acumula bilhões de execuções digitais.",
+                tracks: [
+                    { title: "Maçã Verde", album: "Chora Agora, Ri Depois (2020)", ytId: "4Rz3pM1GZ-w" },
+                    { title: "Ilusão", album: "Single (2021)", ytId: "1M2_Nq52S64" },
+                    { title: "Cartão Vermelho", album: "Mundão Girou (2022)", ytId: "3v8N8U41L3k" },
+                    { title: "Cupido", album: "Single (2022)", ytId: "9oX2pM92K01" }
+                ]
+            },
+            {
+                id: "mc-livinho",
+                category: "rap-funk",
+                categoryLabel: "Funk Paulista",
+                name: "MC Livinho",
+                subtitle: "Voz marcante e afinada do Funk Paulista",
+                image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=600&auto=format&fit=crop",
+                bio: "Pioneiro do Funk Ousadia e dono de vocais impressionantes, emplacou sucessos nacionais marcantes na música urbana.",
+                tracks: [
+                    { title: "Fazer Falta", album: "Single (2017)", ytId: "S3R3S_QdDbc" },
+                    { title: "Cheia de Marra", album: "Single (2016)", ytId: "Hj9p20Z4FEE" },
+                    { title: "Novidade na Área", album: "Single (2023)", ytId: "K6Zz0uE3B2w" },
+                    { title: "Azambuja", album: "Vagabundo Romântico (2016)", ytId: "s3G9A-U2w2A" }
+                ]
+            },
+
+            // ELETRÔNICA
+            {
+                id: "calvin-harris",
+                category: "eletronica",
+                categoryLabel: "Eletrônica / Dance Pop",
+                name: "Calvin Harris",
+                subtitle: "Hit-maker, DJ e produtor escocês de renome internacional",
+                image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=600&auto=format&fit=crop",
+                bio: "Calvin Harris domina palcos de festivais globais e topo das paradas com hits de EDM e colaborações estelares.",
+                tracks: [
+                    { title: "Summer", album: "Motion (2014)", ytId: "ebXbLfLACGM" },
+                    { title: "One Kiss (feat. Dua Lipa)", album: "Single (2018)", ytId: "DkeiKbqa02g" },
+                    { title: "Feel So Close", album: "18 Months (2012)", ytId: "dGghkjpNCQ8" },
+                    { title: "This Is What You Came For", album: "Single (2016)", ytId: "kOkQ4T5WO9E" }
+                ]
+            },
+
+            // FORRÓ
+            {
+                id: "calcinha-preta",
+                category: "forro",
+                categoryLabel: "Forró Eletrônico",
+                name: "Calcinha Preta",
+                subtitle: "A maior e mais amada banda de Forró Romântico do Brasil",
+                image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop",
+                bio: "Fundada em Sergipe em 1995, a Calcinha Preta consagrou o forró eletrônico com grandes shows e arranjos marcantes.",
+                tracks: [
+                    { title: "Você Não Vale Nada", album: "Vol. 20 (2009)", ytId: "A3N9S_012kM" },
+                    { title: "Manchete dos Jornais", album: "Vol. 11 (2004)", ytId: "0b12M9A12kE" },
+                    { title: "Como Vou Deixar Você?", album: "Vol. 8 (2002)", ytId: "5c8N1K2m9pM" },
+                    { title: "Mágica", album: "Vol. 4 (1999)", ytId: "4m92K12N3s1" }
+                ]
+            }
+        ];
+
+        // Estado do Aplicativo
+        let currentCategory = 'all';
+        let currentArtistId = '';
+        let searchQuery = '';
+
+        // Função para Renderizar as Pastas/Gêneros
+        function renderFolders() {
+            const grid = document.getElementById('folder-grid');
+            grid.innerHTML = categories.map(cat => `
+                <button onclick="selectCategory('${cat.id}')" id="folder-${cat.id}" class="folder-card ${cat.id === currentCategory ? 'active' : ''} p-3 rounded-xl border border-borderCol bg-cardBg/90 hover:border-slate-600 transition flex flex-col items-center justify-center group text-center">
+                    <i class="fa-solid ${cat.icon} ${cat.color} text-lg mb-1.5 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold text-slate-200">${cat.name}</span>
+                </button>
+            `).join('');
+        }
+
+        // Seleção de Categoria / Pasta
+        function selectCategory(catId) {
+            currentCategory = catId;
+            searchQuery = '';
+            document.getElementById('global-search').value = '';
+
+            renderFolders();
+            updateCategoryHeader();
+            renderArtistsList();
+        }
+
+        function updateCategoryHeader() {
+            const cat = categories.find(c => c.id === currentCategory);
+            const titleEl = document.getElementById('category-title');
+            const statusEl = document.getElementById('folder-status');
+
+            if (cat) {
+                titleEl.innerHTML = `<i class="fa-solid ${cat.icon} ${cat.color}"></i> <span>${cat.name}</span>`;
+                statusEl.innerText = `Pasta: ${cat.name}`;
+            }
+        }
+
+        // Função de Ordenação Alfabética A-Z
+        function getFilteredAndSortedArtists() {
+            let list = [...artistsData];
+
+            // Filtro por Categoria
+            if (currentCategory !== 'all') {
+                list = list.filter(a => a.category === currentCategory);
+            }
+
+            // Filtro por Busca
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                list = list.filter(a => 
+                    a.name.toLowerCase().includes(q) || 
+                    a.tracks.some(t => t.title.toLowerCase().includes(q))
+                );
+            }
+
+            // ORDENAÇÃO ALFABÉTICA OBRIGATÓRIA A-Z
+            list.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+            return list;
+        }
+
+        // Renderizar Lista Lateral de Artistas (A-Z)
+        function renderArtistsList() {
+            const container = document.getElementById('artists-list-container');
+            const sortedArtists = getFilteredAndSortedArtists();
+
+            document.getElementById('artist-count').innerText = `${sortedArtists.length} Artistas`;
+
+            if (sortedArtists.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-slate-500 bg-cardBg border border-borderCol rounded-xl">
+                        <i class="fa-solid fa-folder-open text-2xl mb-2"></i>
+                        <p class="text-sm">Nenhum artista encontrado nesta pasta.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Se o artista selecionado não estiver na lista visível, seleciona o primeiro
+            if (!sortedArtists.some(a => a.id === currentArtistId)) {
+                currentArtistId = sortedArtists[0].id;
+            }
+
+            container.innerHTML = sortedArtists.map(artist => `
+                <button onclick="selectArtist('${artist.id}')" id="artist-btn-${artist.id}" class="artist-item ${artist.id === currentArtistId ? 'active' : ''} w-full flex items-center space-x-3 p-3 rounded-xl border border-borderCol/80 bg-cardBg/90 hover:border-slate-600 transition text-left">
+                    <img src="${artist.image}" alt="${artist.name}" class="w-11 h-11 rounded-lg object-cover border border-slate-700 flex-shrink-0">
+                    <div class="overflow-hidden flex-grow">
+                        <h4 class="text-xs font-bold text-slate-100 truncate">${artist.name}</h4>
+                        <span class="text-[10px] text-slate-400 block truncate">${artist.categoryLabel}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+                </button>
+            `).join('');
+
+            renderSelectedArtistDetails();
+        }
+
+        // Seleção de Artista
+        function selectArtist(artistId) {
+            currentArtistId = artistId;
+            document.querySelectorAll('.artist-item').forEach(el => el.classList.remove('active'));
+            const activeBtn = document.getElementById(`artist-btn-${artistId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            renderSelectedArtistDetails();
+        }
+
+        // Renderizar Detalhes e Discografia do Artista
+        function renderSelectedArtistDetails() {
+            const artist = artistsData.find(a => a.id === currentArtistId);
+            if (!artist) return;
+
+            document.getElementById('artist-name').innerText = artist.name;
+            document.getElementById('artist-subtitle').innerText = artist.subtitle;
+            document.getElementById('artist-genre-badge').innerText = artist.categoryLabel;
+            document.getElementById('artist-img').src = artist.image;
+            document.getElementById('bio-text').innerHTML = `<p>${artist.bio}</p>`;
+            document.getElementById('track-count').innerText = `${artist.tracks.length} Músicas Principais`;
+
+            const tracksContainer = document.getElementById('discography-list');
+            tracksContainer.innerHTML = artist.tracks.map((track, idx) => {
+                const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(artist.name + ' - ' + track.title)}`;
+
+                return `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl hover:border-slate-700 transition gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-mono text-slate-500 w-5">${idx + 1}.</span>
+                            <i class="fa-solid fa-music text-rose-500 text-xs"></i>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-200">${track.title}</h5>
+                                <p class="text-[11px] text-slate-400">${track.album}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                            <button onclick="openModal('${artist.name} - ${track.title}', '${track.ytId}', '${searchUrl}')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center space-x-1 border border-slate-700">
+                                <i class="fa-solid fa-eye text-amber-400 text-xs"></i>
+                                <span>Preview</span>
+                            </button>
+                            <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="bg-brandRed hover:bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center space-x-1 shadow-sm">
+                                <i class="fa-brands fa-youtube"></i>
+                                <span>Assistir no YouTube</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Busca Global
+        function handleSearch() {
+            searchQuery = document.getElementById('global-search').value;
+            renderArtistsList();
+        }
+
+        // Player de Modal
+        function openModal(title, ytId, directUrl) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-iframe').src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+            document.getElementById('modal-direct-link').href = directUrl;
+            document.getElementById('yt-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('yt-modal').classList.add('hidden');
+            document.getElementById('modal-iframe').src = '';
+        }
+
+        // Inicialização
+        window.onload = function() {
+            renderFolders();
+            updateCategoryHeader();
+            renderArtistsList();
+        };
+    </script>
+</body>
+</html>
